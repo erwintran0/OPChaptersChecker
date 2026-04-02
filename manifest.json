@@ -2,14 +2,13 @@
   "manifest_version": 3,
   "name": "One Piece Chapters Checker",
   "version": "1.0",
-  "description": "View latest chapters from MangaDex",
+  "description": "View latest chapters from Reddit",
   "permissions": [
     "activeTab",
     "scripting",
     "storage"
   ],
   "host_permissions": [
-    "https://api.mangadex.org/*",
     "https://www.reddit.com/*"
   ],
   "icons": {

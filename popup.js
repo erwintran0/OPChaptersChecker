@@ -37,13 +37,15 @@ async function fetchChapters() {
       .map(post => {
         const chapterNumber = parseChapterFromTitle(post.title) || 'N/A';
         const created = new Date(post.created_utc * 1000);
-        const isRecent = isWithinDays(created, 2); // from request
+        const isRecent = isWithinDays(created, 1); // from request
+        const hasNoBreak = post.selftext && post.selftext.includes('NO BREAK NEXT WEEK');
 
         return {
           title: post.title,
           chapterNumber,
           created,
           isRecent,
+          hasNoBreak,
           url: `https://www.reddit.com${post.permalink}`,
         };
       })
@@ -67,13 +69,22 @@ function displayChapters(chapters) {
 
   chapters.forEach(item => {
     const li = document.createElement('li');
-    li.className = 'chapter-item';
+    li.className = `chapter-item ${item.isRecent ? 'recent' : 'old'}`;
 
     let html = `<div class="chapter-title">${item.title}</div>`;
+    html += `<div class="chapter-date">${formatDate(item.created)}`;
+    
     if (item.isRecent) {
       html += ' <span class="new-badge">NEW</span>';
     }
-    html += `<div class="chapter-date">${formatDate(item.created)}</div>`;
+    
+    // Add break text on the right side
+    if (item.hasNoBreak) {
+      html += '<span class="break-text"></span>';
+    } else {
+      html += '<span class="break-text">(break)</span>';
+    }
+    html += `</div>`;
 
     li.innerHTML = html;
     li.addEventListener('click', () => {
