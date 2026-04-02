@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 350px;
+      padding: 16px;
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+    }
+    h1 {
+      font-size: 18px;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #333;
+    }
+    #chapters {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .chapter-item {
+      background-color: white;
+      padding: 8px;
+      margin-bottom: 6px;
+      border-radius: 4px;
+      border-left: 4px solid #d32f2f;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    .chapter-title {
+      color: #d32f2f;
+      font-size: 14px;
+      font-weight: bold;
+      margin: 0;
+    }
+    .chapter-subtitle {
+      color: #555;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .chapter-item:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .chapter-number {
+      font-weight: bold;
+      color: #4CAF50;
+      font-size: 14px;
+    }
+    .chapter-title {
+      color: #d32f2f;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .chapter-date {
+      color: #999;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+    .new-badge {
+      display: inline-block;
+      background-color: #ff6b6b;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      margin-left: 6px;
+      font-weight: bold;
+    }
+    #loading {
+      text-align: center;
+      color: #666;
+      padding: 20px;
+    }
+    #error {
+      background-color: #ffebee;
+      color: #d32f2f;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      display: none;
+    }
+    #websiteBtn {
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px;
+      background-color: #222;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    #websiteBtn:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Latest One Piece Chapters</h1>
+  <div id="error"></div>
+  <div id="loading">Loading chapters...</div>
+  <ul id="chapters" style="display: none;"></ul>
+  <button id="websiteBtn">Visit TCB Scans</button>
+  <script src="popup.js"></script>
+</body>
+</html>

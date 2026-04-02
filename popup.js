@@ -1,0 +1,128 @@
+const API_URL = 'https://www.reddit.com/r/OnePiece/search.json?q=one+piece+chapter+flair%3ACurrent%2BChapter&restrict_sr=on&sort=new&t=all&limit=6';
+
+const chaptersList = document.getElementById('chapters');
+const loading = document.getElementById('loading');
+const error = document.getElementById('error');
+
+function parseChapterFromTitle(title) {
+  // Look for chapter number in title: "... Chapter 1178 ..."
+  const m = title.match(/chapter\s*(\d+)/i);
+  return m ? m[1] : null;
+}
+
+// Fetch chapters from Reddit
+async function fetchChapters() {
+  try {
+    const response = await fetch(API_URL, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'OnePieceChapChecker/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch Reddit posts');
+    }
+
+    const data = await response.json();
+    if (!data || !data.data || !data.data.children) {
+      throw new Error('Invalid Reddit response');
+    }
+
+    const posts = data.data.children
+      .map(item => item.data)
+      .filter(post => post && post.title && !/Official Release Discussion/i.test(post.title));
+
+    const chapters = posts
+      .map(post => {
+        const chapterNumber = parseChapterFromTitle(post.title) || 'N/A';
+        const created = new Date(post.created_utc * 1000);
+        const isRecent = isWithinDays(created, 2); // from request
+
+        return {
+          title: post.title,
+          chapterNumber,
+          created,
+          isRecent,
+          url: `https://www.reddit.com${post.permalink}`,
+        };
+      })
+      .slice(0, 3); // Show top 3 matches
+
+    if (chapters.length === 0) {
+      throw new Error('No chapters found in Reddit results');
+    }
+
+    displayChapters(chapters);
+  } catch (err) {
+    loading.style.display = 'none';
+    error.style.display = 'block';
+    error.textContent = 'Error: ' + err.message;
+  }
+}
+
+// Display chapters in the popup
+function displayChapters(chapters) {
+  chaptersList.innerHTML = '';
+
+  chapters.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'chapter-item';
+
+    let html = `<div class="chapter-title">${item.title}</div>`;
+    if (item.isRecent) {
+      html += ' <span class="new-badge">NEW</span>';
+    }
+    html += `<div class="chapter-date">${formatDate(item.created)}</div>`;
+
+    li.innerHTML = html;
+    li.addEventListener('click', () => {
+      chrome.tabs.create({ url: item.url });
+    });
+    chaptersList.appendChild(li);
+  });
+
+  loading.style.display = 'none';
+  chaptersList.style.display = 'block';
+}
+
+// Check if date is within X days
+function isWithinDays(date, days) {
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = diffTime / (1000 * 60 * 60 * 24);
+  return diffDays <= days;
+}
+
+// Format date nicely
+function formatDate(date) {
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+
+  if (diffDays === 0 && diffHours === 0) {
+    return 'Less than an hour ago';
+  } else if (diffDays === 0) {
+    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else {
+    return `${diffDays} days ago`;
+  }
+}
+
+// Escape HTML special characters
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Fetch chapters on popup open
+fetchChapters();
+
+// Website button click handler
+document.getElementById('websiteBtn').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'https://tcbonepiecechapters.com/mangas/5/one-piece' });
+});
