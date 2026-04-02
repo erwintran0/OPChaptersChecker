@@ -191,8 +191,8 @@ async function cacheChapters(chapters) {
     // Determine cache duration based on content recency
     const hasRecentChapters = chapters.some(chapter => chapter.isRecent);
     const cacheDuration = hasRecentChapters
-      ? 2 * 60 * 60 * 1000  // 2 hours if recent chapters exist
-      : 30 * 60 * 1000;     // 30 minutes if all chapters are old
+      ? 4 * 60 * 60 * 1000  // 4 hours if recent chapters exist
+      : 60 * 60 * 1000;     // 1 hour if all chapters are old
 
     // Convert Date objects to ISO strings for storage
     const chaptersForStorage = chapters.map(chapter => ({
