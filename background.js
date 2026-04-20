@@ -1,5 +1,6 @@
 const API_URL = 'https://www.reddit.com/r/OnePiece/search.json?q=one+piece+chapter+flair%3ACurrent%2BChapter&restrict_sr=on&sort=new&t=all&limit=6';
 const CHECK_INTERVAL = 60 * 60 * 1000; // Check every hour
+const RECENT_DAYS = 1;
 
 function parseChapterFromTitle(title) {
   const m = title.match(/chapter\s*(\d+)/i);
@@ -10,7 +11,7 @@ function parseChapterFromTitle(title) {
 async function checkRecentChapters() {
   // Only check on Thursday (4), Friday (5), and Saturday (6)
   const today = new Date().getDay();
-  const allowedDays = [4, 5, 6]; // Thursday, Friday, Saturday
+  const allowedDays = [1, 2, 3, 4, 5, 6]; // Thursday, Friday, Saturday
 
   if (!allowedDays.includes(today)) {
     return;
@@ -44,7 +45,7 @@ async function checkRecentChapters() {
 
     const recentPosts = posts.filter(post => {
       const postDate = new Date(post.created_utc * 1000);
-      return isWithinDays(postDate, 7);
+      return isWithinDays(postDate, RECENT_DAYS);
     });
 
     if (recentPosts.length > 0) {
@@ -70,6 +71,12 @@ function isWithinDays(date, days) {
 // Listen for when the extension is installed
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension installed!');
+  checkRecentChapters();
+});
+
+// Listen for when the browser starts up
+chrome.runtime.onStartup.addListener(() => {
+  console.log('Browser started!');
   checkRecentChapters();
 });
 

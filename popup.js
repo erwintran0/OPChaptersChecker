@@ -4,6 +4,8 @@ const chaptersList = document.getElementById('chapters');
 const loading = document.getElementById('loading');
 const error = document.getElementById('error');
 
+const RECENT_DAYS = 1;
+
 function parseChapterFromTitle(title) {
   // Look for chapter number in title: "... Chapter 1178 ..."
   const m = title.match(/chapter\s*(\d+)/i);
@@ -71,7 +73,7 @@ async function fetchFreshChapters() {
     .map(post => {
       const chapterNumber = parseChapterFromTitle(post.title) || 'N/A';
       const created = new Date(post.created_utc * 1000);
-      const isRecent = isWithinDays(created, 1);
+      const isRecent = isWithinDays(created, RECENT_DAYS);
       const hasNoBreak = post.selftext && post.selftext.includes('NO BREAK NEXT WEEK');
 
       return {
