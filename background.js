@@ -11,7 +11,7 @@ function parseChapterFromTitle(title) {
 async function checkRecentChapters() {
   // Only check on Thursday (4), Friday (5), and Saturday (6)
   const today = new Date().getDay();
-  const allowedDays = [1, 2, 3, 4, 5, 6]; // Thursday, Friday, Saturday
+  const allowedDays = [4, 5, 6]; // Thursday, Friday, Saturday
 
   if (!allowedDays.includes(today)) {
     return;
