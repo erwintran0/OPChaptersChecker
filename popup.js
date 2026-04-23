@@ -12,6 +12,12 @@ function parseChapterFromTitle(title) {
   return m ? m[1] : null;
 }
 
+function parseChapterTitleFromSelfText(selftext) {
+  // Look for chapter title in selftext: "# Chapter 1181: \"A God and A Devil\"\n\n|Source|Status|\n|:-|:-|\n..."
+  const m = selftext.match(/(chapter\s*\d+):\s*"([^"]+)"/i);
+  return m ? `${m[1]}: ${m[2]}` : null;
+}
+
 // Fetch chapters from Reddit
 async function fetchChapters() {
   try {
@@ -72,12 +78,14 @@ async function fetchFreshChapters() {
   const chapters = posts
     .map(post => {
       const chapterNumber = parseChapterFromTitle(post.title) || 'N/A';
+      const chapterTitle = parseChapterTitleFromSelfText(post.selftext) || 'N/A';
       const created = new Date(post.created_utc * 1000);
       const isRecent = isWithinDays(created, RECENT_DAYS);
       const hasNoBreak = post.selftext && post.selftext.includes('NO BREAK NEXT WEEK');
 
       return {
         title: post.title,
+        chapterTitle,
         chapterNumber,
         created,
         isRecent,
@@ -102,10 +110,12 @@ function displayChapters(chapters, isFromCache = false) {
   chaptersList.innerHTML = '';
 
   chapters.forEach(item => {
+    console.log(item);
+    
     const li = document.createElement('li');
     li.className = `chapter-item ${item.isRecent ? 'recent' : 'old'}`;
 
-    let html = `<div class="chapter-title">${item.title}</div>`;
+    let html = `<div class="chapter-title">${item.chapterTitle}</div>`;
     html += `<div class="chapter-date">${formatDate(item.created)}`;
 
     if (item.isRecent) {
@@ -146,7 +156,6 @@ function formatDate(date) {
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
 
-  console.log(date);
   if (diffDays === 0 && diffHours === 0) {
     return 'Less than an hour ago';
   } else if (diffDays === 0) {
