@@ -13,12 +13,23 @@
       border-radius: 14px;
       overflow: hidden;
     }
+    .popup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
     h1 {
       font-size: 18px;
       margin-top: 0;
-      margin-bottom: 8px;
+      margin-bottom: 0;
       color: #606060;
       font-weight: 450;
+    }
+    .popup-logo {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
     }
     h1 a {
       color: inherit;
@@ -168,7 +179,10 @@
   </style>
 </head>
 <body>
-  <h1><a id="mainTitleLink" href="https://www.reddit.com/r/OnePiece/" target="_blank" rel="noopener noreferrer">Latest One Piece Chapters</a></h1>
+  <header class="popup-header">
+    <h1><a id="mainTitleLink" href="https://www.reddit.com/r/OnePiece/" target="_blank" rel="noopener noreferrer">Latest One Piece Chapters</a></h1>
+    <img class="popup-logo" src="icons/icon-48.png" alt="One Piece Chapters Checker logo">
+  </header>
   <div id="error"></div>
   <div id="loading">Loading chapters...</div>
   <ul id="chapters" style="display: none;"></ul>
