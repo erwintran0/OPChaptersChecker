@@ -1,87 +1,139 @@
-const API_URL = 'https://www.reddit.com/r/OnePiece/search.json?q=one+piece+chapter+flair%3ACurrent%2BChapter&restrict_sr=on&sort=new&t=all&limit=6';
-const CHECK_INTERVAL = 60 * 60 * 1000; // Check every hour
-const RECENT_DAYS = 1;
+const MANGADEX_MANGA_ID = 'a1c7c817-4e59-43b7-9365-09675a149a6f';
+const MANGADEX_FEED_URL = `https://api.mangadex.org/manga/${MANGADEX_MANGA_ID}/feed?translatedLanguage%5B%5D=en&order%5Bchapter%5D=desc&limit=100&includes%5B%5D=scanlation_group`;
+const CHECK_INTERVAL_MINUTES = 60;
+const BREAK_WEEK_GAP_DAYS = 10;
 
-function parseChapterFromTitle(title) {
-  const m = title.match(/chapter\s*(\d+)/i);
-  return m ? parseInt(m[1], 10) : null;
-}
+function parseChapters(response) {
+  const releases = [];
+  const seenChapters = new Set();
 
-// Check for recent chapters and update badge
-async function checkRecentChapters() {
-  // Only check on Thursday (4), Friday (5), and Saturday (6)
-  const today = new Date().getDay();
-  const allowedDays = [4, 5, 6]; // Thursday, Friday, Saturday
+  for (const entry of response.data || []) {
+    const { chapter, title, externalUrl, publishAt } = entry.attributes || {};
+    if (!chapter || seenChapters.has(chapter)) continue;
 
-  if (!allowedDays.includes(today)) {
-    return;
+    seenChapters.add(chapter);
+    releases.push({
+      chapterNumber: chapter,
+      title: title ? `Chapter ${chapter}: ${title}` : `Chapter ${chapter}`,
+      releaseDate: publishAt,
+      breakAfter: false,
+      url: externalUrl || `https://mangadex.org/chapter/${entry.id}`
+    });
   }
 
+  releases.sort((a, b) => Date.parse(b.releaseDate) - Date.parse(a.releaseDate));
+  const chapters = releases.slice(0, 3);
+  for (let index = 0; index < chapters.length; index += 1) {
+    const releaseTime = Date.parse(chapters[index].releaseDate);
+    const nextReleaseTime = index > 0 ? Date.parse(chapters[index - 1].releaseDate) : NaN;
+    if (
+      Number.isFinite(releaseTime) &&
+      Number.isFinite(nextReleaseTime) &&
+      (nextReleaseTime - releaseTime) / (24 * 60 * 60 * 1000) > BREAK_WEEK_GAP_DAYS
+    ) {
+      chapters[index].breakAfter = true;
+    }
+  }
+
+  if (chapters.length === 0) {
+    throw new Error('MangaDex did not return any parseable English One Piece chapters');
+  }
+  return chapters;
+}
+
+async function fetchMangaDexData() {
+  const cached = await chrome.storage.local.get([
+    'mangaDexChapters',
+    'mangaDexFetchedAt',
+    'mangaDexLatestChapter'
+  ]);
+  if (
+    cached.mangaDexChapters &&
+    cached.mangaDexChapters.every(
+      chapter => chapter.releaseDate && typeof chapter.breakAfter === 'boolean'
+    ) &&
+    cached.mangaDexFetchedAt &&
+    Date.now() - cached.mangaDexFetchedAt < CHECK_INTERVAL_MINUTES * 60 * 1000
+  ) {
+    return cached.mangaDexChapters;
+  }
+
+  const response = await fetch(MANGADEX_FEED_URL, {
+    headers: { Accept: 'application/json' }
+  });
+  if (!response.ok) {
+    throw new Error(`MangaDex request failed (${response.status})`);
+  }
+
+  const chapters = parseChapters(await response.json());
+  const latestChapter = chapters[0].chapterNumber;
+
+  if (cached.mangaDexLatestChapter && cached.mangaDexLatestChapter !== latestChapter) {
+    await chrome.action.setBadgeText({ text: 'NEW' });
+    await chrome.action.setBadgeBackgroundColor({ color: '#d32f2f' });
+    await chrome.action.setBadgeTextColor({ color: '#ffffff' });
+  }
+  await chrome.storage.local.set({
+    mangaDexChapters: chapters,
+    mangaDexFetchedAt: Date.now(),
+    mangaDexLatestChapter: latestChapter
+  });
+  return chapters;
+}
+
+function clearLegacyData() {
+  return chrome.storage.local.remove([
+    'redditAccessToken',
+    'redditTokenExpiresAt',
+    'redditRefreshToken',
+    'chapters',
+    'timestamp',
+    'cacheDuration'
+  ]);
+}
+
+function clearMangaUpdatesData() {
+  return chrome.storage.local.remove([
+    'mangaUpdatesChapters',
+    'mangaUpdatesFetchedAt',
+    'mangaUpdatesLatestChapter'
+  ]);
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type !== 'mangadex.fetch') return;
+
+  fetchMangaDexData()
+    .then(chapters => {
+      chrome.action.setBadgeText({ text: '' });
+      sendResponse({ ok: true, chapters });
+    })
+    .catch(error => sendResponse({ ok: false, error: error.message }));
+  return true;
+});
+
+async function checkForNewChapters() {
   try {
-    const response = await fetch(API_URL, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'OnePieceChapChecker/1.0'
-      }
-    });
-
-    if (!response.ok) {
-      return;
-    }
-
-    const data = await response.json();
-    if (!data || !data.data || !data.data.children) {
-      return;
-    }
-
-    const posts = data.data.children
-      .map(item => item.data)
-      .filter(post => post?.title && !/Official Release Discussion/i.test(post.title));
-
-    if (posts.length === 0) {
-      chrome.action.setBadgeText({ text: '' });
-      return;
-    }
-
-    const recentPosts = posts.filter(post => {
-      const postDate = new Date(post.created_utc * 1000);
-      return isWithinDays(postDate, RECENT_DAYS);
-    });
-
-    if (recentPosts.length > 0) {
-      chrome.action.setBadgeText({ text: 'NEW' });
-      chrome.action.setBadgeBackgroundColor({ color: '#d32f2f' });
-      chrome.action.setBadgeTextColor({ color: '#ffffff' });
-    } else {
-      chrome.action.setBadgeText({ text: '' });
-    }
+    await fetchMangaDexData();
   } catch (error) {
-    console.error('Error checking chapters:', error);
+    console.error('Error checking MangaDex chapters:', error);
   }
 }
 
-// Check if date is within X days
-function isWithinDays(date, days) {
-  const now = new Date();
-  const diffTime = Math.abs(now - date);
-  const diffDays = diffTime / (1000 * 60 * 60 * 24);
-  return diffDays <= days;
-}
-
-// Listen for when the extension is installed
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('Extension installed!');
-  checkRecentChapters();
+  Promise.all([clearLegacyData(), clearMangaUpdatesData()])
+    .then(checkForNewChapters)
+    .catch(error => console.error('Error migrating extension storage:', error));
+  chrome.alarms.clear('mangaupdates-check');
+  chrome.alarms.create('mangadex-check', { periodInMinutes: CHECK_INTERVAL_MINUTES });
 });
 
-// Listen for when the browser starts up
 chrome.runtime.onStartup.addListener(() => {
-  console.log('Browser started!');
-  checkRecentChapters();
+  clearLegacyData()
+    .then(checkForNewChapters)
+    .catch(error => console.error('Error cleaning legacy extension data:', error));
 });
 
-// Check for recent chapters periodically
-setInterval(checkRecentChapters, CHECK_INTERVAL);
-
-// Also check when extension starts up
-checkRecentChapters();
+chrome.alarms.onAlarm.addListener(alarm => {
+  if (alarm.name === 'mangadex-check') checkForNewChapters();
+});
