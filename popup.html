@@ -4,17 +4,21 @@
   <meta charset="UTF-8">
   <style>
     body {
-      width: 275px;
+      width: 340px;
       padding: 10px;
-      font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      font-weight: 500;
+      background-color: #fff;
       margin: 0;
+      border-radius: 14px;
+      overflow: hidden;
     }
     h1 {
       font-size: 18px;
       margin-top: 0;
       margin-bottom: 8px;
-      color: #000;
+      color: #606060;
+      font-weight: 450;
     }
     h1 a {
       color: inherit;
@@ -31,6 +35,7 @@
     .chapter-item {
       background-color: white;
       padding: 6px;
+      border: 1px solid #d6d6d6;
       border-left: 4px solid #009dff;
       margin-bottom: 4px;
       border-radius: 8px;
@@ -45,10 +50,28 @@
       outline: 2px solid #009dff;
     }
     .chapter-title {
-      color: #000;
+      flex: 1;
+      min-width: 0;
+      color: #0f243f;
       font-size: 14px;
-      font-weight: bold;
+      font-weight: 500;
       margin: 0;
+    }
+    .chapter-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .latest-label {
+      flex: 0 0 auto;
+      padding: 3px 6px;
+      border-radius: 999px;
+      background-color: #ffebee;
+      color: #c62828;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
     }
     .chapter-footer {
       display: flex;
@@ -56,12 +79,27 @@
       margin-top: 4px;
       font-size: 11px;
     }
-    .chapter-release-age,
-    .chapter-break {
+    .chapter-release-age {
       color: #777;
+      font-weight: 400;
     }
     .chapter-break {
       margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background-color: #fff1bd;
+      color: #805c00;
+      font-size: 10px;
+      font-weight: 500;
+    }
+    .chapter-break-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background-color: #d99a00;
     }
     .chapter-item:hover {
       box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
@@ -83,21 +121,32 @@
     #websiteBtn {
       width: 100%;
       margin-top: 8px;
-      padding: 10px;
-      background-color: #222;
+      padding: 8px 16px;
+      background-color: #123b68;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 999px;
       cursor: pointer;
       font-size: 14px;
-      font-weight: bold;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.2s, background-color 0.2s;
     }
     #websiteBtn:hover {
-      background-color: #555;
+      background-color: #1d568d;
       transform: translateY(-1px);
     }
-    #websiteBtn {
-      transition: transform 0.2s, background-color 0.2s;
+    #websiteBtn svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.8;
     }
     /*
     #clearCacheBtn {
@@ -119,11 +168,18 @@
   </style>
 </head>
 <body>
-  <h1><a id="mainTitleLink" href="https://mangadex.org/title/a1c7c817-4e59-43b7-9365-09675a149a6f" target="_blank" rel="noopener noreferrer">Latest One Piece Chapters</a></h1>
+  <h1><a id="mainTitleLink" href="https://www.reddit.com/r/OnePiece/" target="_blank" rel="noopener noreferrer">Latest One Piece Chapters</a></h1>
   <div id="error"></div>
   <div id="loading">Loading chapters...</div>
   <ul id="chapters" style="display: none;"></ul>
-  <button id="websiteBtn">Visit TCB Scans</button>
+  <button id="websiteBtn">
+    Visit TCB Scans
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M14 4h6v6"></path>
+      <path d="M20 4 11 13"></path>
+      <path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"></path>
+    </svg>
+  </button>
   <!-- <button id="clearCacheBtn">Clear Cache & Reload</button> -->
   <script src="popup.js"></script>
 </body>

@@ -18,20 +18,36 @@ async function fetchChapters() {
 function displayChapters(chapters) {
   chaptersList.replaceChildren();
 
-  for (const chapter of chapters) {
+  for (const [index, chapter] of chapters.entries()) {
     const item = document.createElement('li');
     item.className = 'chapter-item';
     item.tabIndex = 0;
 
+    const heading = document.createElement('div');
+    heading.className = 'chapter-heading';
+
     const title = document.createElement('div');
     title.className = 'chapter-title';
-    title.textContent = chapter.title;
+    const chapterNumber = document.createElement('strong');
+    chapterNumber.textContent = `Chapter ${chapter.chapterNumber}`;
+    title.appendChild(chapterNumber);
+    const titleRemainder = chapter.title.slice(chapterNumber.textContent.length);
+    if (titleRemainder) title.appendChild(document.createTextNode(titleRemainder));
+    heading.appendChild(title);
+
+    if (index === 0) {
+      const latestLabel = document.createElement('span');
+      latestLabel.className = 'latest-label';
+      latestLabel.textContent = 'LATEST';
+      heading.appendChild(latestLabel);
+    }
+
     const releaseTime = Date.parse(chapter.releaseDate);
     const ageInDays = (Date.now() - releaseTime) / (24 * 60 * 60 * 1000);
     if (Number.isFinite(releaseTime) && ageInDays >= 0 && ageInDays <= RECENT_CHAPTER_DAYS) {
       item.classList.add('recent-chapter');
     }
-    item.appendChild(title);
+    item.appendChild(heading);
 
     const footer = document.createElement('div');
     footer.className = 'chapter-footer';
@@ -51,7 +67,11 @@ function displayChapters(chapters) {
     if (chapter.breakAfter) {
       const breakLabel = document.createElement('span');
       breakLabel.className = 'chapter-break';
-      breakLabel.textContent = '(break)';
+      breakLabel.textContent = 'Break';
+      const breakDot = document.createElement('span');
+      breakDot.className = 'chapter-break-dot';
+      breakDot.setAttribute('aria-hidden', 'true');
+      breakLabel.appendChild(breakDot);
       footer.appendChild(breakLabel);
     }
     item.appendChild(footer);
