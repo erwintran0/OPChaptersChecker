@@ -129,6 +129,41 @@
       margin-bottom: 8px;
       display: none;
     }
+    .error-guidance {
+      margin: 6px 0 0;
+    }
+    .error-link {
+      position: relative;
+      display: block;
+      box-sizing: border-box;
+      width: fit-content;
+      min-width: 150px;
+      margin: 8px auto 0;
+      padding: 8px 36px 8px 12px;
+      border-radius: 999px;
+      background-color: #123b68;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      text-align: center;
+    }
+    .error-link:hover {
+      background-color: #1d568d;
+    }
+    .error-link svg {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.8;
+      transform: translateY(-50%);
+    }
     #websiteBtn {
       width: 100%;
       margin-top: 8px;

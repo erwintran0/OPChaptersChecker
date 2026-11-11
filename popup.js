@@ -11,7 +11,28 @@ async function fetchChapters() {
   } catch (err) {
     loading.style.display = 'none';
     error.style.display = 'block';
-    error.textContent = `Error: ${err.message}`;
+    error.replaceChildren(document.createTextNode(`Error: ${err.message}`));
+    if (err.message.includes('MangaDex request failed (403)')) {
+      const guidance = document.createElement('p');
+      guidance.className = 'error-guidance';
+      guidance.textContent = 'Please visit MangaDex once to allow the extension to access the chapters.';
+
+      const mangaDexLink = document.createElement('a');
+      mangaDexLink.className = 'error-link';
+      mangaDexLink.href = 'https://mangadex.org/';
+      mangaDexLink.target = '_blank';
+      mangaDexLink.rel = 'noopener noreferrer';
+      mangaDexLink.appendChild(document.createTextNode('Open MangaDex'));
+
+      const linkIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      linkIcon.setAttribute('viewBox', '0 0 24 24');
+      linkIcon.setAttribute('aria-hidden', 'true');
+      linkIcon.innerHTML = '<path d="M14 4h6v6"></path><path d="M20 4 11 13"></path><path d="M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"></path>';
+      mangaDexLink.appendChild(linkIcon);
+
+      error.appendChild(guidance);
+      error.appendChild(mangaDexLink);
+    }
   }
 }
 
